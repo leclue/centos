@@ -132,16 +132,15 @@ The application consists of 5 components:
   curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
   sudo yum install -y nodejs  
   sudo pip install faker  
-  
   cd /home/ec2-user   
   wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
   unzip apache-maven-3.3.9-bin.zip  
   echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
-  
   git clone https://github.com/leclue/centos.git  
   mkdir ./centos/logs  
   chown -R ec2-user ./centos  
   EOF  
+  
   ```
 6. Take note of the returned "InstanceId" after launching each instance in order to create tags
   ``` 
@@ -183,21 +182,21 @@ The application consists of 5 components:
 
   ```
 9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
-  | Key           | Default                                        | Description                                                                     |
-  | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
-  | dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.c4drhwvuzrc0.us-east-1.redshift.amazonaws.com:5439/mydb   |
-  | dbuser        | None                                           | Username for the Redshift Database                                              |
-  | dbpwd         | None                                           | Password for the Redshift Database                                              |
-  | mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://myinstance.c9eyo2a9gqtn.us-east-1.rds.amazonaws.com:3306/mydb       |
-  | mysqldbuser   | None                                           | Username for the MySQL Database                                                 |
-  | mysqldbpwd    | None                                           | Password for the MySQL Database                                                 |
-  | jsonfile      | /home/ec2-user/jsonfile.json                   | ???                                                                             |
-  | kpltempdir    | /home/ec2-user/centos                          | ???                                                                             |
-  | indexfile     | /home/ec2-user/centos/webapp/public/index.html | Dashboard index page                                                            |
-  | filelocation  | /home/ec2-user/centos/scripts/generatedData    | Input file location (json formatted)                                            |
-  | streamname    | None                                           | Name of the AWS Kinesis Stream                                                  |
-  | region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
-  | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
+| Key           | Default                                        | Description                                                                     |
+| :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
+| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.c4drhwvuzrc0.us-east-1.redshift.amazonaws.com:5439/mydb   |
+| dbuser        | None                                           | Username for the Redshift Database                                              |
+| dbpwd         | None                                           | Password for the Redshift Database                                              |
+| mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://myinstance.c9eyo2a9gqtn.us-east-1.rds.amazonaws.com:3306/mydb       |
+| mysqldbuser   | None                                           | Username for the MySQL Database                                                 |
+| mysqldbpwd    | None                                           | Password for the MySQL Database                                                 |
+| jsonfile      | /home/ec2-user/jsonfile.json                   | ???                                                                             |
+| kpltempdir    | /home/ec2-user/centos                          | ???                                                                             |
+| indexfile     | /home/ec2-user/centos/webapp/public/index.html | Dashboard index page                                                            |
+| filelocation  | /home/ec2-user/centos/scripts/generatedData    | Input file location (json formatted)                                            |
+| streamname    | None                                           | Name of the AWS Kinesis Stream                                                  |
+| region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
+| s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
 10. Start the Archiving Consumer from the **~/centos** directory  
   ```
   nohup bash -c \  
@@ -226,7 +225,7 @@ The application consists of 5 components:
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
    &> ~/centos/logs/producer.log" &  
-   
+
   ```
   
 
