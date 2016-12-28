@@ -123,7 +123,7 @@ The application consists of 5 components:
   --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
   --role-name 12616-KCLRole  
   ```
-5. Create a Bootstrap script to automate the installation of the dependencies on newly launched instances
+5. Create a Bootstrap script to automate the installation of the dependencies on newly launched instances  
   ```
   cat <<EOF > Bootstrap.sh  
   #!/bin/bash  
@@ -163,7 +163,7 @@ The application consists of 5 components:
 
   aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
   ```
-7. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
+7. Create an RDS Instance and take note of the JDBC Endpoint, username and password  
   ```
   aws rds create-db-instance \  
   --db-instance-identifier RDSInstance12616 \  
