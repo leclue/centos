@@ -123,8 +123,7 @@ The application consists of 5 components:
   --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
   --role-name 12616-KCLRole  
   ```
-5. Launch the required EC2 Instances  
-  1. Create a Bootstrap script to automate the installation of the dependencies  
+5. Create a Bootstrap script to automate the installation of the dependencies on newly launched instances
   ```
   cat <<EOF > Bootstrap.sh  
   #!/bin/bash  
@@ -142,7 +141,7 @@ The application consists of 5 components:
   chown -R ec2-user ./centos  
   EOF  
   ```
-  2. Take note of the returned "InstanceId" after launching the KPL instance  
+6. Take note of the returned "InstanceId" after launching each instance in order to create tags
   ``` 
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
@@ -151,13 +150,9 @@ The application consists of 5 components:
   --instance-type m3.large \  
   --iam-instance-profile Name="12616-KPLRole" \  
   --user-data file://Bootstrap.sh  
-  ```
-  3. Tag the instance  
-  ```
+
   aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
-  ```
-  4. Take note of the returned "InstanceId" after launching the KCL instance  
-  ``` 
+
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
   --key-name sshkeypair \  
@@ -165,12 +160,10 @@ The application consists of 5 components:
   --instance-type m3.large \  
   --iam-instance-profile Name="12616-KCLRole" \  
   --user-data file://Bootstrap.sh  
-  ```
-  5. Tag the instance  
-  ```
+
   aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
   ```
-6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
+7. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
   ```
   aws rds create-db-instance \  
   --db-instance-identifier RDSInstance12616 \  
@@ -181,12 +174,11 @@ The application consists of 5 components:
   --db-instance-class db.t1.micro \  
   --allocated-storage 8  
   ```
-7. Create an Amazon S3 bucket  
+8. Create an Amazon S3 bucket  
   ```
   aws s3 mb s3://12616S3Bucket  
   ```
-8. Set up the KCL instance  
-  1. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
+9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
   | Key           | Default                                        | Description                                                                     |
   | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
   | dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.c4drhwvuzrc0.us-east-1.redshift.amazonaws.com:5439/mydb   |
@@ -202,33 +194,32 @@ The application consists of 5 components:
   | streamname    | None                                           | Name of the AWS Kinesis Stream                                                  |
   | region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
   | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
-  2. Start the Archiving Consumer from the **~/centos** directory  
-    ```
-    nohup bash -c \  
-    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
-     &> ~/centos/logs/archiving_consumer.log" &  
-    ```
-  3. Start the dashboard consumer  
-    ```
-    nohup bash -c \  
-    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
-    &> ~/centos/logs/dashboard_consumer.log" &  
-    ```
-9. Set up the KPL instance  
-  1. Similiar to 8.1, SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
-  2. Generate some sample data  
-    ```
-    cd ~/centos/scripts/  
-    rm -rf ./generatedData  
-    python generateJson.py 2 10  
-    cd ..  
-    ```
-  3. Start the producer  
-    ```
-    nohup bash -c \  
-    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
-     &> ~/centos/logs/producer.log" &  
-    ```
+10. Start the Archiving Consumer from the **~/centos** directory  
+  ```
+  nohup bash -c \  
+  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
+   &> ~/centos/logs/archiving_consumer.log" &  
+  ```
+11. Start the dashboard consumer  
+  ```
+  nohup bash -c \  
+  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
+  &> ~/centos/logs/dashboard_consumer.log" &  
+  ```
+12. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
+13. Generate some sample data  
+  ```
+  cd ~/centos/scripts/  
+  rm -rf ./generatedData  
+  python generateJson.py 2 10  
+  cd ..  
+  ```
+14. Start the producer  
+  ```
+  nohup bash -c \  
+  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
+   &> ~/centos/logs/producer.log" &  
+  ```
   
 
 **todo**  
