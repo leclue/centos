@@ -125,51 +125,51 @@ The application consists of 5 components:
   ```
 5. Launch the required EC2 Instances  
   5.1. Create a Bootstrap script to automate the installation of the dependencies  
-  ```
-  cat <<EOF > Bootstrap.sh  
-  #!/bin/bash  
-  sudo yum install -y java-1.8.0-* git gcc-c++ make  
-  sudo yum remove -y java-1.7.0-*  
-  curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
-  sudo yum install -y nodejs  
-  sudo pip install faker  
-  cd /home/ec2-user   
-  wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
-  unzip apache-maven-3.3.9-bin.zip  
-  echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
-  git clone https://github.com/leclue/centos.git  
-  mkdir ./centos/logs  
-  chown -R ec2-user ./centos  
-  EOF  
-  ```
+    ```
+    cat <<EOF > Bootstrap.sh  
+    #!/bin/bash  
+    sudo yum install -y java-1.8.0-* git gcc-c++ make  
+    sudo yum remove -y java-1.7.0-*  
+    curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
+    sudo yum install -y nodejs  
+    sudo pip install faker  
+    cd /home/ec2-user   
+    wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
+    unzip apache-maven-3.3.9-bin.zip  
+    echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
+    git clone https://github.com/leclue/centos.git  
+    mkdir ./centos/logs  
+    chown -R ec2-user ./centos  
+    EOF  
+    ```
   5.2. Take note of the returned "InstanceId" after launching the KPL instance  
-  ``` 
-  aws ec2 run-instances \  
-  --image-id ami-9be6f38c \  
-  --key-name sshkeypair \  
-  --security-groups default \  
-  --instance-type m3.large \  
-  --iam-instance-profile Name="12616-KPLRole" \  
-  --user-data file://Bootstrap.sh  
-  ```
+    ``` 
+    aws ec2 run-instances \  
+    --image-id ami-9be6f38c \  
+    --key-name sshkeypair \  
+    --security-groups default \  
+    --instance-type m3.large \  
+    --iam-instance-profile Name="12616-KPLRole" \  
+    --user-data file://Bootstrap.sh  
+    ```
   5.3. Tag the instance  
-  ```
-  aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
-  ```
+    ```
+    aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
+    ```
   5.4. Take note of the returned "InstanceId" after launching the KCL instance  
-  ``` 
-  aws ec2 run-instances \  
-  --image-id ami-9be6f38c \  
-  --key-name sshkeypair \  
-  --security-groups default \  
-  --instance-type m3.large \  
-  --iam-instance-profile Name="12616-KCLRole" \  
-  --user-data file://Bootstrap.sh  
-  ```
+    ``` 
+    aws ec2 run-instances \  
+    --image-id ami-9be6f38c \  
+    --key-name sshkeypair \  
+    --security-groups default \  
+    --instance-type m3.large \  
+    --iam-instance-profile Name="12616-KCLRole" \  
+    --user-data file://Bootstrap.sh  
+    ```
   5.5. Tag the instance  
-  ```
-  aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
-  ```
+    ```
+    aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
+    ```
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
   ```
   aws rds create-db-instance \  
@@ -205,35 +205,35 @@ The application consists of 5 components:
   | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
   
   8.2. Start the Archiving Consumer from the **~/centos** directory  
-  ```
-  nohup bash -c \  
-  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
-   &> ~/centos/logs/archiving_consumer.log" &  
-  ```
+    ```
+    nohup bash -c \  
+    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
+     &> ~/centos/logs/archiving_consumer.log" &  
+    ```
 
   8.3. Start the dashboard consumer  
-  ```
-  nohup bash -c \  
-  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
-  &> ~/centos/logs/dashboard_consumer.log" &  
-  ```
+    ```
+    nohup bash -c \  
+    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
+    &> ~/centos/logs/dashboard_consumer.log" &  
+    ```
 9. Set up the KPL instance  
   9.1. Similiar to 8.1, SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
 
   9.2. Generate some sample data  
-  ```
-  cd ~/centos/scripts/  
-  rm -rf ./generatedData  
-  python generateJson.py 2 10  
-  cd ..  
-  ```
+    ```
+    cd ~/centos/scripts/  
+    rm -rf ./generatedData  
+    python generateJson.py 2 10  
+    cd ..  
+    ```
 
   9.3. Start the producer  
-  ```
-  nohup bash -c \  
-  "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
-   &> ~/centos/logs/producer.log" &  
-  ```
+    ```
+    nohup bash -c \  
+    "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
+     &> ~/centos/logs/producer.log" &  
+    ```
   
 **todo**  
 Start the Job Scheduler  
