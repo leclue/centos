@@ -1,7 +1,7 @@
 **incomplete WIP**
 
 
-##CENTOS
+##De-duplication and strict ordering Kinesis KCL example
 
 This is an end-to-end [AWS Kinesis Streams](https://aws.amazon.com/kinesis/streams/) processing example using the [AWS Kinesis Producer Library (KPL)](http://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html) to send records to a kinesis stream, consume from the stream using the [AWS Kinesis Client Library (KCL)](http://docs.aws.amazon.com/streams/latest/dev/developing-consumers-with-kcl.html) and archive data to an [Amazon S3](http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html) bucket. Additionally, a second KCL consumer provides realtime data updates to a web front-end. 
 
@@ -13,7 +13,7 @@ The application consists of 5 components:
 4. A Dashboard Job Scheduler
 5. A script to generate data in the format required by the application(s)
 
-#Requirements:
+###Requirements:
 1. An Amazon Web Services [Account](https://aws.amazon.com/free/?sc_channel=PS&sc_campaign=acquisition_ZA&sc_publisher=google&sc_medium=cloud_computing_b&sc_content=aws_account_e&sc_detail=aws%20account&sc_category=cloud_computing&sc_segment=77706639422&sc_matchtype=e&sc_country=ZA&s_kwcid=AL!4422!3!77706639422!e!!g!!aws%20account&ef_id=V9u@TgAABMH86aOm:20161227051709:s)
 2. AWS CLI Installed and configured
 3. After following the steps in the **Getting Started** section, you will have set up the following resources:  
@@ -25,107 +25,107 @@ The application consists of 5 components:
   3.5. An Amazon S3 bucket  
 4. When the KCL is initiated, two DynamoDB tables are created  
 
-#Getting Started
+###Getting Started
 1. Create a Kinesis Stream  
-  ```
-  aws kinesis create-stream --stream-name 12616-Stream --shard-count 2  
-  ```
+```
+aws kinesis create-stream --stream-name 12616-Stream --shard-count 2  
+```
 
 2. Create the Kinesis IAM roles required for EC2 Instances  
-  ```
-  aws iam create-role \  
-  --role-name 12616-KPLRole \  
-  --assume-role-policy-document '  
-  {  
-      "Version": "2012-10-17",  
-      "Statement": [{  
-          "Sid": "",  
-          "Effect": "Allow",  
-          "Principal": {  
-              "Service": "ec2.amazonaws.com"  
-          },  
-          "Action": "sts:AssumeRole"  
-      }]  
-  }'  
+```
+aws iam create-role \  
+--role-name 12616-KPLRole \  
+--assume-role-policy-document '  
+{  
+    "Version": "2012-10-17",  
+    "Statement": [{  
+        "Sid": "",  
+        "Effect": "Allow",  
+        "Principal": {  
+            "Service": "ec2.amazonaws.com"  
+        },  
+        "Action": "sts:AssumeRole"  
+    }]  
+}'  
 
-  aws iam create-role \  
-  --role-name 12616-KCLRole \  
-  --assume-role-policy-document '  
-  {  
-      "Version": "2012-10-17",  
-      "Statement": [{  
-          "Sid": "",  
-          "Effect": "Allow",  
-          "Principal": {  
-              "Service": "ec2.amazonaws.com"  
-          },  
-          "Action": "sts:AssumeRole"  
-      }]  
-  }'  
+aws iam create-role \  
+--role-name 12616-KCLRole \  
+--assume-role-policy-document '  
+{  
+    "Version": "2012-10-17",  
+    "Statement": [{  
+        "Sid": "",  
+        "Effect": "Allow",  
+        "Principal": {  
+            "Service": "ec2.amazonaws.com"  
+        },  
+        "Action": "sts:AssumeRole"  
+    }]  
+}'  
 
-  aws iam create-instance-profile --instance-profile-name 12616-KCLRole  
+aws iam create-instance-profile --instance-profile-name 12616-KCLRole  
 
-  aws iam create-instance-profile --instance-profile-name 12616-KPLRole  
+aws iam create-instance-profile --instance-profile-name 12616-KPLRole  
 
-  aws iam add-role-to-instance-profile --instance-profile-name 12616-KPLRole --role-name 12616-KPLRole  
+aws iam add-role-to-instance-profile --instance-profile-name 12616-KPLRole --role-name 12616-KPLRole  
 
-  aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole  
-  ```
+aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole  
+```
 
 3. Create the Kinesis IAM Policies  
-  ```
-  aws iam create-policy \  
-  --policy-name 12616-KPLPolicy \  
-  --policy-document '  
-  {  
-      "Version": "2012-10-17",  
-      "Statement": [{  
-          "Effect": "Allow",  
-          "Action": ["kinesis:PutRecord"],  
-          "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
-      }]  
-  }'  
+```
+aws iam create-policy \  
+--policy-name 12616-KPLPolicy \  
+--policy-document '  
+{  
+    "Version": "2012-10-17",  
+    "Statement": [{  
+        "Effect": "Allow",  
+        "Action": ["kinesis:PutRecord"],  
+        "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
+    }]  
+}'  
 
-  aws iam create-policy \  
-  --policy-name 12616-KCLPolicy \  
-  --policy-document '  
-  {  
-      "Version": "2012-10-17",  
-      "Statement": [{  
-          "Effect": "Allow",  
-          "Action": ["kinesis:Get*"],  
-          "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
-      }, {  
-          "Effect": "Allow",  
-          "Action": ["kinesis:DescribeStream"],  
-          "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
-      }, {  
-          "Effect": "Allow",  
-          "Action": ["kinesis:ListStreams"],  
-          "Resource": ["*"]  
-      }, {  
-          "Effect": "Allow",  
-          "Action": ["dynamodb:CreateTable", "dynamodb:DescribeTable", "dynamodb:Scan", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"],  
-          "Resource": ["arn:aws:dynamodb:us-east-1:884207849747:table/Centos*"]  
-      }, {  
-          "Sid": "Stmt1482832527000",  
-          "Effect": "Allow",  
-          "Action": ["cloudwatch:PutMetricData"],  
-          "Resource": ["*"]  
-      }]  
-  }'  
-  ```
+aws iam create-policy \  
+--policy-name 12616-KCLPolicy \  
+--policy-document '  
+{  
+    "Version": "2012-10-17",  
+    "Statement": [{  
+        "Effect": "Allow",  
+        "Action": ["kinesis:Get*"],  
+        "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+    }, {  
+        "Effect": "Allow",  
+        "Action": ["kinesis:DescribeStream"],  
+        "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+    }, {  
+        "Effect": "Allow",  
+        "Action": ["kinesis:ListStreams"],  
+        "Resource": ["*"]  
+    }, {  
+        "Effect": "Allow",  
+        "Action": ["dynamodb:CreateTable", "dynamodb:DescribeTable", "dynamodb:Scan", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"],  
+        "Resource": ["arn:aws:dynamodb:us-east-1:884207849747:table/Centos*"]  
+    }, {  
+        "Sid": "Stmt1482832527000",  
+        "Effect": "Allow",  
+        "Action": ["cloudwatch:PutMetricData"],  
+        "Resource": ["*"]  
+    }]  
+}'  
+```
 
 4. Attach the Policies to the Roles  
-  ```
-  aws iam attach-role-policy \  
-  --policy-arn "arn:aws:iam::884207849747:policy/12616-KPLPolicy" \  
-  --role-name 12616-KPLRole  
+```
+aws iam attach-role-policy \  
+--policy-arn "arn:aws:iam::884207849747:policy/12616-KPLPolicy" \  
+--role-name 12616-KPLRole  
 
-  aws iam attach-role-policy \  
-  --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
-  --role-name 12616-KCLRole  
-  ```
+aws iam attach-role-policy \  
+--policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
+--role-name 12616-KCLRole  
+```
 
 5. Launch the required EC2 Instances  
   5.1. Create a Bootstrap script to automate the installation of the dependencies  
@@ -174,21 +174,24 @@ The application consists of 5 components:
   ```
   aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
   ```
+
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
-  ```
-  aws rds create-db-instance \  
-  --db-instance-identifier RDSInstance12616 \  
-  --db-name DB12616 \  
-  --engine mysql \  
-  --master-username groot \  
-  --master-user-password ********** \  
-  --db-instance-class db.t1.micro \  
-  --allocated-storage 8  
-  ```
+```
+aws rds create-db-instance \  
+--db-instance-identifier RDSInstance12616 \  
+--db-name DB12616 \  
+--engine mysql \  
+--master-username groot \  
+--master-user-password ********** \  
+--db-instance-class db.t1.micro \  
+--allocated-storage 8  
+```
+
 7. Create an Amazon S3 bucket  
-  ```
-  aws s3 mb s3://12616S3Bucket  
-  ```
+```
+aws s3 mb s3://12616S3Bucket  
+```
+
 8. Set up the KCL instance  
   8.1. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
 
@@ -214,14 +217,17 @@ The application consists of 5 components:
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
    &> ~/centos/logs/archiving_consumer.log" &  
   ```
+
   8.3. Start the dashboard consumer  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
   &> ~/centos/logs/dashboard_consumer.log" &  
   ```
+
 9. Set up the KPL instance  
   9.1. Similiar to 8.1, SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
+
   9.2. Generate some sample data  
   ```
   cd ~/centos/scripts/  
@@ -229,6 +235,7 @@ The application consists of 5 components:
   python generateJson.py 2 10  
   cd ..  
   ```
+
   9.3. Start the producer  
   ```
   nohup bash -c \  
