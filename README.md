@@ -129,23 +129,23 @@ The application consists of 5 components:
 
 5. Launch the required EC2 Instances  
   1. Create a Bootstrap script to automate the installation of the dependencies  
-    ```
-    cat <<EOF > Bootstrap.sh  
-    #!/bin/bash  
-    sudo yum install -y java-1.8.0-* git gcc-c++ make  
-    sudo yum remove -y java-1.7.0-*  
-    curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
-    sudo yum install -y nodejs  
-    sudo pip install faker  
-    cd /home/ec2-user   
-    wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
-    unzip apache-maven-3.3.9-bin.zip  
-    echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
-    git clone https://github.com/leclue/centos.git  
-    mkdir ./centos/logs  
-    chown -R ec2-user ./centos  
-    EOF  
-    ```
+  ```
+  cat <<EOF > Bootstrap.sh  
+  #!/bin/bash  
+  sudo yum install -y java-1.8.0-* git gcc-c++ make  
+  sudo yum remove -y java-1.7.0-*  
+  curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
+  sudo yum install -y nodejs  
+  sudo pip install faker  
+  cd /home/ec2-user   
+  wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
+  unzip apache-maven-3.3.9-bin.zip  
+  echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
+  git clone https://github.com/leclue/centos.git  
+  mkdir ./centos/logs  
+  chown -R ec2-user ./centos  
+  EOF  
+  ```
   2. Take note of the returned "InstanceId" after launching the KPL instance  
     ``` 
     aws ec2 run-instances \  
