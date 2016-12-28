@@ -140,7 +140,7 @@ The application consists of 5 components:
   mkdir ./centos/logs  
   chown -R ec2-user ./centos  
   EOF  
-  
+
   ```
 6. Take note of the returned "InstanceId" after launching each instance in order to create tags
   ``` 
@@ -181,13 +181,13 @@ The application consists of 5 components:
   aws s3 mb s3://12616S3Bucket  
 
   ```
-9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
+9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created
 | Key           | Default                                        | Description                                                                     |
 | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
-| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.c4drhwvuzrc0.us-east-1.redshift.amazonaws.com:5439/mydb   |
+| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.db          |
 | dbuser        | None                                           | Username for the Redshift Database                                              |
 | dbpwd         | None                                           | Password for the Redshift Database                                              |
-| mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://myinstance.c9eyo2a9gqtn.us-east-1.rds.amazonaws.com:3306/mydb       |
+| mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://myinsta306/mydb      |
 | mysqldbuser   | None                                           | Username for the MySQL Database                                                 |
 | mysqldbpwd    | None                                           | Password for the MySQL Database                                                 |
 | jsonfile      | /home/ec2-user/jsonfile.json                   | ???                                                                             |
@@ -197,6 +197,7 @@ The application consists of 5 components:
 | streamname    | None                                           | Name of the AWS Kinesis Stream                                                  |
 | region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
 | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
+
 10. Start the Archiving Consumer from the **~/centos** directory  
   ```
   nohup bash -c \  
