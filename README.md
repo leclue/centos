@@ -128,7 +128,7 @@ The application consists of 5 components:
     ```
 
 5. Launch the required EC2 Instances  
-⋅⋅1. Create a Bootstrap script to automate the installation of the dependencies  
+  1. Create a Bootstrap script to automate the installation of the dependencies  
     ```
     cat <<EOF > Bootstrap.sh  
     #!/bin/bash  
@@ -146,7 +146,7 @@ The application consists of 5 components:
     chown -R ec2-user ./centos  
     EOF  
     ```
-⋅⋅2. Take note of the returned "InstanceId" after launching the KPL instance  
+  2. Take note of the returned "InstanceId" after launching the KPL instance  
     ``` 
     aws ec2 run-instances \  
     --image-id ami-9be6f38c \  
@@ -156,11 +156,11 @@ The application consists of 5 components:
     --iam-instance-profile Name="12616-KPLRole" \  
     --user-data file://Bootstrap.sh  
     ```
-⋅⋅3. Tag the instance  
+  3. Tag the instance  
     ```
     aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
     ```
-⋅⋅4. Take note of the returned "InstanceId" after launching the KCL instance  
+  4. Take note of the returned "InstanceId" after launching the KCL instance  
     ``` 
     aws ec2 run-instances \  
     --image-id ami-9be6f38c \  
@@ -170,12 +170,12 @@ The application consists of 5 components:
     --iam-instance-profile Name="12616-KCLRole" \  
     --user-data file://Bootstrap.sh  
     ```
-⋅⋅5. Tag the instance  
+  5. Tag the instance  
     ```
     aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
     ```
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
-    6.1. MySQL  
+  1. MySQL  
     ```
     aws rds create-db-instance \  
     --db-instance-identifier RDSInstance12616 \  
@@ -186,15 +186,15 @@ The application consists of 5 components:
     --db-instance-class db.t1.micro \  
     --allocated-storage 8  
     ```
-    6.2. Redshift  
+  2. Redshift  
     ```
-        aws redshift create-cluster \  
-        --cluster-identifier Redshift12616 \  
-        --db-name db12616redshift \  
-        --cluster-type single-node \  
-        --node-type ds1.xlarge \  
-        --master-username groot \  
-        --master-user-password **********  
+    aws redshift create-cluster \  
+    --cluster-identifier Redshift12616 \  
+    --db-name db12616redshift \  
+    --cluster-type single-node \  
+    --node-type ds1.xlarge \  
+    --master-username groot \  
+    --master-user-password **********  
     ```
 7. Create an Amazon S3 bucket  
     ```
