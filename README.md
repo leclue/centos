@@ -28,93 +28,173 @@ The application consists of 5 components:
 #Getting Started
 1. Create a Kinesis Stream  
     ```
-        aws kinesis create-stream --stream-name 12616-Stream --shard-count 2
+    aws kinesis create-stream --stream-name 12616-Stream --shard-count 2  
     ```
 
 2. Create the Kinesis IAM roles required for EC2 Instances  
     ```
-    aws iam create-role --role-name 12616-KPLRole --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{"Sid": "","Effect": "Allow","Principal": {"Service": "ec2.amazonaws.com"},"Action": "sts:AssumeRole"}]}'
+    aws iam create-role \  
+    --role-name 12616-KPLRole \  
+    --assume-role-policy-document '  
+    {  
+        "Version": "2012-10-17",  
+        "Statement": [{  
+            "Sid": "",  
+            "Effect": "Allow",  
+            "Principal": {  
+                "Service": "ec2.amazonaws.com"  
+            },  
+            "Action": "sts:AssumeRole"  
+        }]  
+    }'  
 
-    aws iam create-role --role-name 12616-KCLRole --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{"Sid": "","Effect": "Allow","Principal": {"Service": "ec2.amazonaws.com"},"Action": "sts:AssumeRole"}]}'
+    aws iam create-role \  
+    --role-name 12616-KCLRole \  
+    --assume-role-policy-document '  
+    {  
+        "Version": "2012-10-17",  
+        "Statement": [{  
+            "Sid": "",  
+            "Effect": "Allow",  
+            "Principal": {  
+                "Service": "ec2.amazonaws.com"  
+            },  
+            "Action": "sts:AssumeRole"  
+        }]  
+    }'  
 
-    aws iam create-instance-profile --instance-profile-name 12616-KCLRole
+    aws iam create-instance-profile --instance-profile-name 12616-KCLRole  
 
-    aws iam create-instance-profile --instance-profile-name 12616-KPLRole
+    aws iam create-instance-profile --instance-profile-name 12616-KPLRole  
 
-    aws iam add-role-to-instance-profile --instance-profile-name 12616-KPLRole --role-name 12616-KPLRole
+    aws iam add-role-to-instance-profile --instance-profile-name 12616-KPLRole --role-name 12616-KPLRole  
 
-    aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole
+    aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole  
     ```
 
 3. Create the Kinesis IAM Policies  
     ```
-    aws iam create-policy --policy-name 12616-KPLPolicy --policy-document '{"Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": [ "kinesis:PutRecord" ], "Resource": [ "arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream" ] } ] }'
+    aws iam create-policy \  
+    --policy-name 12616-KPLPolicy \  
+    --policy-document '  
+    {  
+        "Version": "2012-10-17",  
+        "Statement": [{  
+            "Effect": "Allow",  
+            "Action": ["kinesis:PutRecord"],  
+            "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
+        }]  
+    }'  
 
-    aws iam create-policy --policy-name 12616-KCLPolicy --policy-document '{"Version": "2012-10-17","Statement": [{"Effect": "Allow","Action": ["kinesis:Get*"],"Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]},{"Effect": "Allow","Action": ["kinesis:DescribeStream"],"Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]},{"Effect": "Allow","Action": ["kinesis:ListStreams"],"Resource": ["*"]},{"Effect": "Allow","Action": ["dynamodb:CreateTable","dynamodb:DescribeTable","dynamodb:Scan","dynamodb:PutItem","dynamodb:UpdateItem","dynamodb:GetItem"],"Resource": ["arn:aws:dynamodb:us-east-1:884207849747:table/Centos*"]},{"Sid": "Stmt1482832527000","Effect": "Allow","Action": ["cloudwatch:PutMetricData"],"Resource": ["*"]}]}'
+    aws iam create-policy \  
+    --policy-name 12616-KCLPolicy \  
+    --policy-document '  
+    {  
+        "Version": "2012-10-17",  
+        "Statement": [{  
+            "Effect": "Allow",  
+            "Action": ["kinesis:Get*"],  
+            "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+        }, {  
+            "Effect": "Allow",  
+            "Action": ["kinesis:DescribeStream"],  
+            "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+        }, {  
+            "Effect": "Allow",  
+            "Action": ["kinesis:ListStreams"],  
+            "Resource": ["*"]  
+        }, {  
+            "Effect": "Allow",  
+            "Action": ["dynamodb:CreateTable", "dynamodb:DescribeTable", "dynamodb:Scan", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"],  
+            "Resource": ["arn:aws:dynamodb:us-east-1:884207849747:table/Centos*"]  
+        }, {  
+            "Sid": "Stmt1482832527000",  
+            "Effect": "Allow",  
+            "Action": ["cloudwatch:PutMetricData"],  
+            "Resource": ["*"]  
+        }]  
+    }'  
     ```
 
 4. Attach the Policies to the Roles  
     ```
-    aws iam attach-role-policy --policy-arn "arn:aws:iam::884207849747:policy/12616-KPLPolicy" --role-name 12616-KPLRole
+    aws iam attach-role-policy \  
+    --policy-arn "arn:aws:iam::884207849747:policy/12616-KPLPolicy" \  
+    --role-name 12616-KPLRole  
 
-    aws iam attach-role-policy --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" --role-name 12616-KCLRole
+    aws iam attach-role-policy \  
+    --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
+    --role-name 12616-KCLRole  
     ```
 
 5. Launch the required EC2 Instances  
-    5.1. Create a Bootstrap script to automate the installation of the dependencies  
+⋅⋅1. Create a Bootstrap script to automate the installation of the dependencies  
     ```
-            cat <<EOF > Bootstrap.sh  
-            #!/bin/bash  
-            sudo yum install -y java-1.8.0-* git gcc-c++ make  
-            sudo yum remove -y java-1.7.0-*  
-            curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
-            sudo yum install -y nodejs  
-            sudo pip install faker  
-            cd /home/ec2-user   
-            wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
-            unzip apache-maven-3.3.9-bin.zip  
-            echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
-            git clone https://github.com/leclue/centos.git  
-            mkdir ./centos/logs  
-            chown -R ec2-user ./centos  
-            EOF  
+    cat <<EOF > Bootstrap.sh  
+    #!/bin/bash  
+    sudo yum install -y java-1.8.0-* git gcc-c++ make  
+    sudo yum remove -y java-1.7.0-*  
+    curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
+    sudo yum install -y nodejs  
+    sudo pip install faker  
+    cd /home/ec2-user   
+    wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
+    unzip apache-maven-3.3.9-bin.zip  
+    echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
+    git clone https://github.com/leclue/centos.git  
+    mkdir ./centos/logs  
+    chown -R ec2-user ./centos  
+    EOF  
     ```
-    5.2. Take note of the returned "InstanceId" after launching the KPL instance  
+⋅⋅2. Take note of the returned "InstanceId" after launching the KPL instance  
     ``` 
-            aws ec2 run-instances \  
-            --image-id ami-9be6f38c \  
-            --key-name sshkeypair \  
-            --security-groups default \  
-            --instance-type m3.large \  
-            --iam-instance-profile Name="12616-KPLRole" \  
-            --user-data file://Bootstrap.sh  
+    aws ec2 run-instances \  
+    --image-id ami-9be6f38c \  
+    --key-name sshkeypair \  
+    --security-groups default \  
+    --instance-type m3.large \  
+    --iam-instance-profile Name="12616-KPLRole" \  
+    --user-data file://Bootstrap.sh  
     ```
-    5.3. Tag the instance  
+⋅⋅3. Tag the instance  
     ```
-            aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
+    aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
     ```
-    5.4. Take note of the returned "InstanceId" after launching the KCL instance  
+⋅⋅4. Take note of the returned "InstanceId" after launching the KCL instance  
     ``` 
-            aws ec2 run-instances \  
-            --image-id ami-9be6f38c \  
-            --key-name sshkeypair \  
-            --security-groups default \  
-            --instance-type m3.large \  
-            --iam-instance-profile Name="12616-KCLRole" \  
-            --user-data file://Bootstrap.sh  
+    aws ec2 run-instances \  
+    --image-id ami-9be6f38c \  
+    --key-name sshkeypair \  
+    --security-groups default \  
+    --instance-type m3.large \  
+    --iam-instance-profile Name="12616-KCLRole" \  
+    --user-data file://Bootstrap.sh  
     ```
-    5.5. Tag the instance  
+⋅⋅5. Tag the instance  
     ```
-            aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
+    aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
     ```
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
     6.1. MySQL  
     ```
-        aws rds create-db-instance --db-instance-identifier RDSInstance12616 --db-name DB12616 --engine mysql --master-username groot --master-user-password ********** --db-instance-class db.t1.micro --allocated-storage 8  
+    aws rds create-db-instance \  
+    --db-instance-identifier RDSInstance12616 \  
+    --db-name DB12616 \  
+    --engine mysql \  
+    --master-username groot \  
+    --master-user-password ********** \  
+    --db-instance-class db.t1.micro \  
+    --allocated-storage 8  
     ```
     6.2. Redshift  
     ```
-        aws redshift create-cluster --cluster-identifier Redshift12616 --db-name db12616redshift --cluster-type single-node --node-type ds1.xlarge --master-username groot --master-user-password **********  
+        aws redshift create-cluster \  
+        --cluster-identifier Redshift12616 \  
+        --db-name db12616redshift \  
+        --cluster-type single-node \  
+        --node-type ds1.xlarge \  
+        --master-username groot \  
+        --master-user-password **********  
     ```
 7. Create an Amazon S3 bucket  
     ```
