@@ -132,10 +132,12 @@ The application consists of 5 components:
   curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
   sudo yum install -y nodejs  
   sudo pip install faker  
+  
   cd /home/ec2-user   
   wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
   unzip apache-maven-3.3.9-bin.zip  
   echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
+  
   git clone https://github.com/leclue/centos.git  
   mkdir ./centos/logs  
   chown -R ec2-user ./centos  
@@ -173,10 +175,12 @@ The application consists of 5 components:
   --master-user-password ********** \  
   --db-instance-class db.t1.micro \  
   --allocated-storage 8  
+
   ```
 8. Create an Amazon S3 bucket  
   ```
   aws s3 mb s3://12616S3Bucket  
+
   ```
 9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
   | Key           | Default                                        | Description                                                                     |
@@ -199,12 +203,14 @@ The application consists of 5 components:
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
    &> ~/centos/logs/archiving_consumer.log" &  
+
   ```
 11. Start the dashboard consumer  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
   &> ~/centos/logs/dashboard_consumer.log" &  
+
   ```
 12. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
 13. Generate some sample data  
@@ -213,12 +219,14 @@ The application consists of 5 components:
   rm -rf ./generatedData  
   python generateJson.py 2 10  
   cd ..  
+
   ```
 14. Start the producer  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
    &> ~/centos/logs/producer.log" &  
+   
   ```
   
 
