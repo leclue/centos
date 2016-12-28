@@ -30,7 +30,6 @@ The application consists of 5 components:
 ```
 aws kinesis create-stream --stream-name 12616-Stream --shard-count 2  
 ```
-
 2. Create the Kinesis IAM roles required for EC2 Instances  
 ```
 aws iam create-role \  
@@ -71,7 +70,6 @@ aws iam add-role-to-instance-profile --instance-profile-name 12616-KPLRole --rol
 
 aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole  
 ```
-
 3. Create the Kinesis IAM Policies  
 ```
 aws iam create-policy \  
@@ -115,7 +113,6 @@ aws iam create-policy \
     }]  
 }'  
 ```
-
 4. Attach the Policies to the Roles  
 ```
 aws iam attach-role-policy \  
@@ -126,7 +123,6 @@ aws iam attach-role-policy \
 --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
 --role-name 12616-KCLRole  
 ```
-
 5. Launch the required EC2 Instances  
   5.1. Create a Bootstrap script to automate the installation of the dependencies  
   ```
@@ -174,7 +170,6 @@ aws iam attach-role-policy \
   ```
   aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
   ```
-
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
 ```
 aws rds create-db-instance \  
@@ -186,12 +181,10 @@ aws rds create-db-instance \
 --db-instance-class db.t1.micro \  
 --allocated-storage 8  
 ```
-
 7. Create an Amazon S3 bucket  
 ```
 aws s3 mb s3://12616S3Bucket  
 ```
-
 8. Set up the KCL instance  
   8.1. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
 
@@ -224,7 +217,6 @@ aws s3 mb s3://12616S3Bucket
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
   &> ~/centos/logs/dashboard_consumer.log" &  
   ```
-
 9. Set up the KPL instance  
   9.1. Similiar to 8.1, SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
 
