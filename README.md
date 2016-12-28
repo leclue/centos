@@ -92,11 +92,11 @@ The application consists of 5 components:
       "Statement": [{  
           "Effect": "Allow",  
           "Action": ["kinesis:Get*"],  
-          "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+          "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
       }, {  
           "Effect": "Allow",  
           "Action": ["kinesis:DescribeStream"],  
-          "Resource": ["arn:aws:kinesis:us-east-1:884207849747:stream/12616-Stream"]  
+          "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
       }, {  
           "Effect": "Allow",  
           "Action": ["kinesis:ListStreams"],  
@@ -104,7 +104,7 @@ The application consists of 5 components:
       }, {  
           "Effect": "Allow",  
           "Action": ["dynamodb:CreateTable", "dynamodb:DescribeTable", "dynamodb:Scan", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"],  
-          "Resource": ["arn:aws:dynamodb:us-east-1:884207849747:table/Centos*"]  
+          "Resource": ["arn:aws:dynamodb:us-east-1:111122223333:table/Centos*"]  
       }, {  
           "Sid": "Stmt1482832527000",  
           "Effect": "Allow",  
@@ -116,11 +116,11 @@ The application consists of 5 components:
 4. Attach the Policies to the Roles  
   ```
   aws iam attach-role-policy \  
-  --policy-arn "arn:aws:iam::884207849747:policy/12616-KPLPolicy" \  
+  --policy-arn "arn:aws:iam::111122223333:policy/12616-KPLPolicy" \  
   --role-name 12616-KPLRole  
 
   aws iam attach-role-policy \  
-  --policy-arn "arn:aws:iam::884207849747:policy/12616-KCLPolicy" \  
+  --policy-arn "arn:aws:iam::111122223333:policy/12616-KCLPolicy" \  
   --role-name 12616-KCLRole  
   ```
 5. Create a Bootstrap script to automate the installation of the dependencies on newly launched instances  
@@ -152,7 +152,7 @@ The application consists of 5 components:
   --iam-instance-profile Name="12616-KPLRole" \  
   --user-data file://Bootstrap.sh  
 
-  aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
+  aws ec2 create-tags --resources i-000d3b6d9fexample --tags Key=Name,Value="12616-KPLInstance"  
 
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
@@ -162,7 +162,7 @@ The application consists of 5 components:
   --iam-instance-profile Name="12616-KCLRole" \  
   --user-data file://Bootstrap.sh  
 
-  aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
+  aws ec2 create-tags --resources i-0879e274caexample --tags Key=Name,Value="12616-KCLInstance"  
   ```
 7. Create an RDS Instance and take note of the JDBC Endpoint, username and password  
   ```
@@ -185,10 +185,10 @@ The application consists of 5 components:
 
 | Key           | Default                                        | Description                                                                     |
 | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
-| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.db          |
+| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster:5439/mydb   |
 | dbuser        | None                                           | Username for the Redshift Database                                              |
 | dbpwd         | None                                           | Password for the Redshift Database                                              |
-| mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://myinsta306/mydb      |
+| mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://instance:3306/mydb   |
 | mysqldbuser   | None                                           | Username for the MySQL Database                                                 |
 | mysqldbpwd    | None                                           | Password for the MySQL Database                                                 |
 | jsonfile      | /home/ec2-user/jsonfile.json                   | ???                                                                             |
