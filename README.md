@@ -128,7 +128,7 @@ The application consists of 5 components:
   ```
 
 5. Launch the required EC2 Instances  
-  1. Create a Bootstrap script to automate the installation of the dependencies  
+  5.1. Create a Bootstrap script to automate the installation of the dependencies  
   ```
   cat <<EOF > Bootstrap.sh  
   #!/bin/bash  
@@ -146,7 +146,7 @@ The application consists of 5 components:
   chown -R ec2-user ./centos  
   EOF  
   ```
-  2. Take note of the returned "InstanceId" after launching the KPL instance  
+  5.2. Take note of the returned "InstanceId" after launching the KPL instance  
   ``` 
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
@@ -156,11 +156,11 @@ The application consists of 5 components:
   --iam-instance-profile Name="12616-KPLRole" \  
   --user-data file://Bootstrap.sh  
   ```
-  3. Tag the instance  
+  5.3. Tag the instance  
   ```
   aws ec2 create-tags --resources i-000d3b6d9f9c9f0f1 --tags Key=Name,Value="12616-KPLInstance"  
   ```
-  4. Take note of the returned "InstanceId" after launching the KCL instance  
+  5.4. Take note of the returned "InstanceId" after launching the KCL instance  
   ``` 
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
@@ -170,12 +170,12 @@ The application consists of 5 components:
   --iam-instance-profile Name="12616-KCLRole" \  
   --user-data file://Bootstrap.sh  
   ```
-  5. Tag the instance  
+  5.5. Tag the instance  
   ```
   aws ec2 create-tags --resources i-0879e274ca521159d --tags Key=Name,Value="12616-KCLInstance"  
   ```
 6. Create an RDS Instance and take note of the JDBC Endpoint, username and password.  
-  1. MySQL  
+  6.1. MySQL  
   ```
   aws rds create-db-instance \  
   --db-instance-identifier RDSInstance12616 \  
@@ -186,7 +186,7 @@ The application consists of 5 components:
   --db-instance-class db.t1.micro \  
   --allocated-storage 8  
   ```
-  2. Redshift  
+  6.2. Redshift  
   ```
   aws redshift create-cluster \  
   --cluster-identifier Redshift12616 \  
@@ -203,21 +203,22 @@ The application consists of 5 components:
 
 8. Set up the KCL instance  
   8.1. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created  
-| Key           | Default                                     | Description                                                                     |  
-| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |  
-| dburl         | None                                        | The JDBC URL for the redshift cluster, e.g. `jdbc:redshift://cluster.c4drhwvuzrc0.us-east-1.redshift.amazonaws.com:5439/mydb` |  
-| dbuser        | None                                        | Username for the Redshift Database                                              |  
-| dbpwd         | None                                        | Password for the Redshift Database                                              |  
-| mysqldburl    | None                                        | The JDBC URL for the MySQL RDS Instance, e.g. `jdbc:mysql://myinstance.c9eyo2a9gqtn.us-east-1.rds.amazonaws.com:3306/mydb`      |  
-| mysqldbuser   | None                                        | Username for the MySQL Database                                                 |  
-| mysqldbpwd    | None                                        | Password for the MySQL Database                                                 |  
-| jsonfile      | ~/jsonfile.json                             | ???                                                                             |  
-| kpltempdir    | ~/centos                                    | ???                                                                             |  
-| indexfile     | ~/centos/webapp/public/index.html           | Dashboard index page                                                            |  
-| filelocation  | /home/ec2-user/centos/scripts/generatedData | Input file location (json formatted)                                            |  
-| streamname    | None                                        | Name of the AWS Kinesis Stream                                                  |  
-| region        | us-east-1                                   | AWS Region of the Kinesis Stream                                                |  
-| s3bucket      | None                                        | S3 Bucket Name for archived data                                                |  
+  
+  | Key           | Default                                     | Description                                                                     |
+  | :------------ | :------------------------------------------ | :------------------------------------------------------------------------------ |
+  | dburl         | None                                        | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://aws.com:5439/mydb   |
+  | dbuser        | None                                        | Username for the Redshift Database                                              |
+  | dbpwd         | None                                        | Password for the Redshift Database                                              |
+  | mysqldburl    | None                                        | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql:// com:3306/mydb       |
+  | mysqldbuser   | None                                        | Username for the MySQL Database                                                 |
+  | mysqldbpwd    | None                                        | Password for the MySQL Database                                                 |
+  | jsonfile      | ~/jsonfile.json                             | ???                                                                             |
+  | kpltempdir    | ~/centos                                    | ???                                                                             |
+  | indexfile     | ~/centos/webapp/public/index.html           | Dashboard index page                                                            |
+  | filelocation  | /home/ec2-user/centos/scripts/generatedData | Input file location (json formatted)                                            |
+  | streamname    | None                                        | Name of the AWS Kinesis Stream                                                  |
+  | region        | us-east-1                                   | AWS Region of the Kinesis Stream                                                |
+  | s3bucket      | None                                        | S3 Bucket Name for archived data                                                |
   
   8.2. Start the Archiving Consumer from the **~/centos** directory  
   ```
