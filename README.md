@@ -199,22 +199,23 @@ The application consists of 5 components:
 | region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
 | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
 
-10. Start the Archiving Consumer from the **~/centos** directory  
+###Running the Example:
+1. Start the Archiving Consumer from the **~/centos** directory  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
    &> ~/centos/logs/archiving_consumer.log" &  
 
   ```
-11. Start the dashboard consumer  
+2. Start the dashboard consumer  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl2.ConsumerApp2 > ~/centos/logs/dashboard_consumer.log) \  
   &> ~/centos/logs/dashboard_consumer.log" &  
 
   ```
-12. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
-13. Generate some sample data  
+3. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
+4. Generate some sample data  
   ```
   cd ~/centos/scripts/  
   rm -rf ./generatedData  
@@ -222,7 +223,7 @@ The application consists of 5 components:
   cd ..  
 
   ```
-14. Start the producer  
+5. Start the producer  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
