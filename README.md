@@ -25,7 +25,7 @@ The application consists of 5 components:
   3.5. An Amazon S3 bucket  
 4. When the KCL is initiated, two DynamoDB tables are created  
 
-###Getting Started
+###Setting up the environment:
 1. Create a Kinesis Stream  
   ```
   aws kinesis create-stream --stream-name 12616-Stream --shard-count 2  
@@ -234,7 +234,7 @@ The application consists of 5 components:
 
 **todo**  
 Start the Job Scheduler  
-mvn exec:java -Dexec.mainClass=com.tayo.centos.scheduler.DashboardMonitor > ~/centos/logs/dashboard.log  
+mvn exec:java -Dexec.mainClass=com.tayo.centos.scheduler.DashboardMonitor 
 start the nodejs server (webapps folder) -- node server.js  
   
 Note:   
