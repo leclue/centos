@@ -182,6 +182,7 @@ The application consists of 5 components:
 
   ```
 9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created
+
 | Key           | Default                                        | Description                                                                     |
 | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
 | dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster.db          |
