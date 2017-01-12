@@ -31,7 +31,6 @@ public class S3ArchiverThread implements Runnable
     private static final String PREFIX = "centos";
     private static final String fileName = "centos_consumer";
     private static final Logger log = LoggerFactory.getLogger(S3ArchiverThread.class);
-    private String filePathName;
     private List<Record> recordList;
     private static final CharsetDecoder DECODER = Charset.forName("UTF-8").newDecoder();
     AmazonS3Client s3Client = new AmazonS3Client(new DefaultAWSCredentialsProviderChain()).withRegion(Region.getRegion(Regions.US_WEST_2));
@@ -46,15 +45,7 @@ public class S3ArchiverThread implements Runnable
         return recordList;
     }
 
-    public void setFilePathName(String filePathName)
-    {
-        this.filePathName = filePathName;
-    }
 
-    public String getFilePathName()
-    {
-        return filePathName;
-    }
 
     public String writeRecordsToFile(List<Record> recordList)
     {
@@ -66,7 +57,7 @@ public class S3ArchiverThread implements Runnable
 
             for(Record record: recordList)
             {
-                writer.write(DECODER.decode(record.getData()).toString());
+                writer.write(DECODER.decode(record.getData()).toString());  //decodes and writes lines to file
             }
 
         }
@@ -124,7 +115,7 @@ public class S3ArchiverThread implements Runnable
         try
         {
         	String bucketName = CentosUtils.getProperties().getProperty("s3bucket");
-            System.out.println("Uploading a new object to S3 from a file\n");
+            log.info("Uploading a new object to S3 bucket " + bucketName);
             File file = new File(path.toString());
             log.info("Filename is " + path.toString());
             s3Client.putObject(new PutObjectRequest(bucketName, file.getName(), file));
@@ -132,11 +123,11 @@ public class S3ArchiverThread implements Runnable
         }
         catch(AmazonServiceException ase)
         {
-            log.error("Failed uploading file to S3 : " + path);
-        }
-        catch(IOException ase)
-        {
             log.error("Failed uploading file to S3 : " + ase.toString());
+        }
+        catch(IOException ioe)
+        {
+            log.error("Failed uploading file to S3 : " + ioe.toString());
         }
     }
 

@@ -1,5 +1,6 @@
 package com.tayo.centos.kcl2;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.tayo.centos.util.CentosUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +27,6 @@ public class DBLoaderThread implements Runnable
 	private static final Logger log = LoggerFactory.getLogger(DBLoaderThread.class);
     private List<Record> recordList;
     private static final CharsetDecoder DECODER = Charset.forName("UTF-8").newDecoder();
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 
     public DBLoaderThread(List<Record> recordList)
     {
@@ -51,12 +52,7 @@ public class DBLoaderThread implements Runnable
 			Connection conn = getConnection();
 			log.info("Connected to DB! smiles..." + conn.toString());
 			persistRecords(conn, this.getRecordList());
-			/*for testing only
-			List<Record> records = this.getRecordList();
-			for (Record record: records)
-			{
-				log.info(DECODER.decode(record.getData()).toString());
-			}*/
+
 		} 
 		catch (Exception e) 
 		{
@@ -64,6 +60,9 @@ public class DBLoaderThread implements Runnable
 		}
     }
 
+    /*
+    * This is a test
+     */
     public static void main(String[] args)
     {
         try
@@ -93,7 +92,7 @@ public class DBLoaderThread implements Runnable
 
     }
 
-    private static void persistRecords(Connection conn, List<Record> recordsList) throws SQLException
+    private static void persistRecords(Connection conn, List<Record> recordsList) throws SQLException, IOException
     {
 
         PreparedStatement stmt = null;
@@ -105,12 +104,12 @@ public class DBLoaderThread implements Runnable
         String activityTimestamp = null;
         String activityType = null;
         String activityMetadata = null;
-
+        String dbname = CentosUtils.getProperties().getProperty("dbname");
         log.info("In persistRecords");
 
-       
+
             int k = 1;  // keep track of items added to batch
-            String sql = "insert into event.user_events (id, userid ,fullName, gender,relationshipStatus,  activityTimestamp, activityType , activityMetadata) "
+            String sql = "insert into " + " " + dbname+".user_events (id, userid ,fullName, gender,relationshipStatus,  activityTimestamp, activityType , activityMetadata) "
             		+ "       values (?, ?, ?, ?, ?, ?, ?, ?)ON DUPLICATE KEY UPDATE "
             		+ "userid=?,fullname=?,gender=?,relationshipstatus=?,"
             		+ "activitytimestamp=?,activitytype=?,activitymetadata=? ;";
@@ -119,7 +118,7 @@ public class DBLoaderThread implements Runnable
             {
                 try
                 {
-                    String recordValue =  DECODER.decode(record.getData()).toString();
+                    String recordValue =  DECODER.decode(record.getData()).toString();  ///decodes the value obtained
                     log.info("RECORD VALUE OBTAINED is : " + recordValue);
                     String[] rowValues = recordValue.toString().split(",");
                     id = rowValues[0];

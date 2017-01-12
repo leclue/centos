@@ -3,15 +3,21 @@
 
 ##De-duplication and strict ordering Kinesis KCL example
 
-This is an end-to-end [AWS Kinesis Streams](https://aws.amazon.com/kinesis/streams/) processing example using the [AWS Kinesis Producer Library (KPL)](http://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html) to send records to a kinesis stream, consume from the stream using the [AWS Kinesis Client Library (KCL)](http://docs.aws.amazon.com/streams/latest/dev/developing-consumers-with-kcl.html) and archive data to an [Amazon S3](http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html) bucket. Additionally, a second KCL consumer provides realtime data updates to a web front-end. 
+This is an end-to-end [AWS Kinesis Streams](https://aws.amazon.com/kinesis/streams/) processing example using the [AWS Kinesis Producer Library (KPL)](http://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html) to send records to a kinesis stream, consume from the stream using the [AWS Kinesis Client Library (KCL)](http://docs.aws.amazon.com/streams/latest/dev/developing-consumers-with-kcl.html) and archive data to an [Amazon S3](http://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html) bucket. Additionally, a second KCL consumer de-duplicates the consumed records and provides realtime data updates to a web front-end. 
 
 The application consists of 5 components:
 
-1. A producer application
-2. An Archiving Consumer application
-3. A De-duplicating Dashboard consumer application
-4. A Dashboard Job Scheduler
-5. A script to generate data in the format required by the application(s)
+1. A script to generate data in the format required by the application(s)
+2. A Kinesis producer application
+3. A De-duplicating Dashboard KCL application
+4. An S3 Archiving KCL application 
+5. A Dashboard Job Scheduler 
+
+##Architecture Diagrams:
+![alt tag](https://github.com/cheefoo/centos/blob/master/Archie1.png)
+
+###Architecture Diagram II:
+![alt tag](https://github.com/cheefoo/centos/blob/master/Archie2.png)
 
 ###Requirements:
 1. An Amazon Web Services [Account](https://aws.amazon.com/free/?sc_channel=PS&sc_campaign=acquisition_ZA&sc_publisher=google&sc_medium=cloud_computing_b&sc_content=aws_account_e&sc_detail=aws%20account&sc_category=cloud_computing&sc_segment=77706639422&sc_matchtype=e&sc_country=ZA&s_kwcid=AL!4422!3!77706639422!e!!g!!aws%20account&ef_id=V9u@TgAABMH86aOm:20161227051709:s)
@@ -21,8 +27,7 @@ The application consists of 5 components:
   3.2. Two IAM roles, Instance Profiles and [Policies](http://docs.aws.amazon.com/streams/latest/dev/controlling-access.html) required for the KCL and KPL instances  
   3.3. Two AWS EC2 Instances based on AmazonLinux with dependencies pre-installed  
   3.3. An RDS mysql database  
-  3.4. A Redshift database  
-  3.5. An Amazon S3 bucket  
+  3.4. An Amazon S3 bucket  
 4. When the KCL is initiated, two DynamoDB tables are created  
 
 ###Setting up the environment:
@@ -70,7 +75,7 @@ The application consists of 5 components:
 
   aws iam add-role-to-instance-profile --instance-profile-name 12616-KCLRole --role-name 12616-KCLRole  
   ```
-3. Create the Kinesis IAM Policies  
+3. Create the Kinesis IAM Policies  (Please replace the account ids with your own account id)
   ```
   aws iam create-policy \  
   --policy-name 12616-KPLPolicy \  
@@ -79,9 +84,16 @@ The application consists of 5 components:
       "Version": "2012-10-17",  
       "Statement": [{  
           "Effect": "Allow",  
-          "Action": ["kinesis:PutRecord"],  
+          "Action": ["kinesis:PutRecord","kinesis:PutRecords","kinesis:DescribeStream"],  
           "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
-      }]  
+      },
+      {  
+          "Sid": "Stmt1482832527000",  
+          "Effect": "Allow",  
+          "Action": ["cloudwatch:PutMetricData"],  
+          "Resource": ["*"]  
+      }
+      ]  
   }'  
 
   aws iam create-policy \  
@@ -93,7 +105,15 @@ The application consists of 5 components:
           "Effect": "Allow",  
           "Action": ["kinesis:Get*"],  
           "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
-      }, {  
+      }, 
+      {
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": ["arn:aws:s3:::12616S3Bucket-","arn:aws:s3:::12616S3Bucket-/*"]
+        },
+      {  
           "Effect": "Allow",  
           "Action": ["kinesis:DescribeStream"],  
           "Resource": ["arn:aws:kinesis:us-east-1:111122223333:stream/12616-Stream"]  
@@ -130,19 +150,20 @@ The application consists of 5 components:
   sudo yum install -y java-1.8.0-* git gcc-c++ make  
   sudo yum remove -y java-1.7.0-*  
   curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -  
-  sudo yum install -y nodejs  
+  sudo yum install -y nodejs 
+  sudo yum install mysql -y
   sudo pip install faker  
   cd /home/ec2-user   
   wget http://mirrors.whoishostingthis.com/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip  
   unzip apache-maven-3.3.9-bin.zip  
   echo "export PATH=\$PATH:/home/ec2-user/apache-maven-3.3.9/bin" >> .bashrc  
-  git clone https://github.com/leclue/centos.git  
+  git clone https://github.com/cheefoo/centos.git  
   mkdir ./centos/logs  
   chown -R ec2-user ./centos  
   EOF  
 
   ```
-6. Take note of the returned "InstanceId" after launching each instance in order to create tags
+6. Please note that image-id given in below command belongs to us-east-1, if you are launching in a different region please look up the image-id for that region. Take note of the returned "InstanceId" after launching each instance in order to create tags
   ``` 
   aws ec2 run-instances \  
   --image-id ami-9be6f38c \  
@@ -181,26 +202,38 @@ The application consists of 5 components:
   aws s3 mb s3://12616S3Bucket  
 
   ```
-9. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created
+9. Dont forget to modify the default security group to allow ssh access. SSH into the KCL Instance and edit the **~/home/ec2-user/centos/src/main/resources** file according to the resources created
 
 | Key           | Default                                        | Description                                                                     |
 | :------------ | :--------------------------------------------- | :------------------------------------------------------------------------------ |
-| dburl         | None                                           | The JDBC URL for the redshift cluster, e.g. jdbc:redshift://cluster:5439/mydb   |
-| dbuser        | None                                           | Username for the Redshift Database                                              |
-| dbpwd         | None                                           | Password for the Redshift Database                                              |
 | mysqldburl    | None                                           | The JDBC URL for the MySQL RDS Instance, e.g. jdbc:mysql://instance:3306/mydb   |
 | mysqldbuser   | None                                           | Username for the MySQL Database                                                 |
 | mysqldbpwd    | None                                           | Password for the MySQL Database                                                 |
-| jsonfile      | /home/ec2-user/jsonfile.json                   | ???                                                                             |
-| kpltempdir    | /home/ec2-user/centos                          | ???                                                                             |
 | indexfile     | /home/ec2-user/centos/webapp/public/index.html | Dashboard index page                                                            |
 | filelocation  | /home/ec2-user/centos/scripts/generatedData    | Input file location (json formatted)                                            |
 | streamname    | None                                           | Name of the AWS Kinesis Stream                                                  |
-| region        | us-east-1                                      | AWS Region of the Kinesis Stream                                                |
+| region        | us-west-2                                     | AWS Region of the Kinesis Stream                                                |
 | s3bucket      | None                                           | S3 Bucket Name for archived data                                                |
+| kcl_archiver_name      | CentosArchiver                        | KCL App name for the S3 Archiver consumer                                                |
+| kcl_dashboard_name      | CentosDashboard                      | KCL App name for the dashboard consumer                                                 |
+| dbname      | DB12616                      | Name of the database schema                                                  |
 
 ###Running the Example:
-1. Start the Archiving Consumer from the **~/centos** directory  
+1. SSH into the KCL Instance and edit the **~/centos/src/main/resources/db.properties** file according to the resources created. 
+
+
+    1a. Login to the mysql db instance and create the user_events table by using the ddl user_events.sql located in ~/centos/scripts/user_events.sql
+    
+```
+mysql --host=rdsinstance12616.cu74pzqocy8l.us-west-2.rds.amazonaws.com --user=groot --password=####### DB12616
+
+```
+    1b. execute the ddl script
+
+    ```
+    mvn compile 
+    ```
+    1c. Start the Archiving Consumer from the **~/centos** directory  
   ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.kcl1.ConsumerApp > ~/centos/logs/archiving_consumer.log) \  
@@ -214,7 +247,7 @@ The application consists of 5 components:
   &> ~/centos/logs/dashboard_consumer.log" &  
 
   ```
-3. SSH into the KCL Instance and edit the **~/centos/target/classes/db.properties** file according to the resources created.  
+3. SSH into the KPL Instance and edit the **~/centos/kpl_config.properties** file according to the resources created.  
 4. Generate some sample data  
   ```
   cd ~/centos/scripts/  
@@ -223,22 +256,42 @@ The application consists of 5 components:
   cd ..  
 
   ```
-5. Start the producer  
-  ```
+5. SSH into the KPL Instance and edit the **~/centos/src/main/resources/db.properties** file, add your location for the generated data. Modify ~/centos/kpl_config.properties appropriately.
+ 
+    ```
+    mvn compile
+    
+    ```
+``
+    5a. Start the producer 
+
+ ```
   nohup bash -c \  
   "(mvn exec:java -Dexec.mainClass=com.tayo.centos.ProducerOne > ~/centos/logs/producer.log) \  
    &> ~/centos/logs/producer.log" &  
 
   ```
   
+6. From the KCL instance, Start the Job Scheduler 
 
-**todo**  
-Start the Job Scheduler  
-mvn exec:java -Dexec.mainClass=com.tayo.centos.scheduler.DashboardMonitor 
-start the nodejs server (webapps folder) -- node server.js  
+  ```
+  nohup bash -c \  
+  "(mvn exec:java -Dexec.mainClass=ccom.tayo.centos.scheduler.DashboardMonitor  > ~/centos/logs/scheduler.log) \  
+   &> ~/centos/logs/scheduler.log" &  
+
+  ```
+  
+7. From the KCL instance,  Start the NodeJS Server  from the webapps directory
+  ```
+ node server.js
+
+  ```
+8.  Open http://XX.YYY.XXX.ZZZZ:8080/ from your browser.
+
+```
   
 Note:   
-* KPL reads region from "./default_config.properties"  
-* Endless while loop in [KPL](https://github.com/leclue/centos/blob/master/src/main/java/com/tayo/centos/ProducerOne.java#L127) needs to be fixed.  
+* KPL reads region and stream name from "./kpl_config.properties"  
+* KCL Apps reads region and stream name from ./db.properties
 
 
